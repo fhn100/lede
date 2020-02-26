@@ -26,12 +26,12 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@master
         with:
           ref: master
 
-      - name: Space cleanup
+      - name: 空间清理
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -50,16 +50,11 @@ jobs:
           # ln -s /mnt/openwrt/feeds ./feeds
           # ln -s /mnt/openwrt/staging_dir ./staging_dir
           df -h
-      - name: 同步最新的源码
-        run: |
-          git remote add openwrt https://github.com/coolsnowwolf/lede.git
-          git pull openwrt master
-          git remote -v
-      - name: Update feeds
+      - name: 更新依赖
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-      - name: Generate configuration file
+      - name: 生成配置
         run: |
           rm -f ./.config*
           touch ./.config
@@ -192,12 +187,12 @@ jobs:
           # 
           sed -i 's/^[ \t]*//g' ./.config
           make defconfig
-      - name: Make download
+      - name: 编译下载
         run: |
           make download -j8
           find ./dl/ -size -1024c -exec rm -f {} \;
           df -h
-      - name: Compile firmware
+      - name: 编译固件
         run: |
           make -j$(nproc) || make -j1 V=s
           echo "======================="
@@ -208,10 +203,10 @@ jobs:
           du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
-      - name: Prepare artifact
+      - name: 清理固件
         run: find ./bin/targets/ -type d -name "packages" | xargs rm -rf {}
 
-      - name: Upload artifact
+      - name: 上传固件
         uses: actions/upload-artifact@master
         with:
           name: OpenWrt firmware
